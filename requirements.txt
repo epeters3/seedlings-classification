@@ -1,0 +1,8 @@
+fire
+tensorflow==1.14.0
+tqdm
+numpy
+wandb
+h5py
+efficientnet
+pandas

@@ -1,0 +1,9 @@
+*.h5
+train
+dev
+test
+*.csv
+.vscode
+__pycache__
+wandb
+submissions
