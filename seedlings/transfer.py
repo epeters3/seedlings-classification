@@ -30,7 +30,7 @@ model_map = {
 
 
 def transfer_train(
-    image_size: int = 64,
+    image_size: int = 128,
     batch_size: int = 32,
     epochs: int = 30,
     l2_regularization: float = 1e-5,

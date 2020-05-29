@@ -50,7 +50,7 @@ scratch_hyperparam_samplers = {
 
 # Hyperparams for `seedlings.transfer.transfer_train`
 pretrained_hyperparam_samplers = {
-    "epochs": make_sampler(5, 75, "int"),
+    "epochs": make_sampler(5, 35, "int"),
     "l2_regularization": make_sampler(-10, -1, "log"),
     "architecture": make_discrete_sampler(
         {"EfficientNetB1", "EfficientNetB2", "EfficientNetB3"}
