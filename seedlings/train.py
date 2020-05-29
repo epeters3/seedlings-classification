@@ -97,8 +97,6 @@ def train(
         epochs=epochs,
         validation_data=dev_data_gen,
         callbacks=[WandbCallback(save_model=False)],
-        workers=3,
-        use_multiprocessing=True,
     )
 
     # Evaluate final performance on the train set
