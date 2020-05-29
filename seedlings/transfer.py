@@ -7,15 +7,14 @@ from wandb.keras import WandbCallback
 import tensorflow as tf
 import tensorflow.keras.layers as L
 import efficientnet.tfkeras as efn
-import pandas as pd
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 
-from seedlings.test import make_and_save_submission
+from seedlings.test import make_submission
 from seedlings.config import TRAIN_DIR, DEV_DIR
 from seedlings.dataset import ImageDataset
-from seedlings.utils import get_dir_files
+from seedlings.utils import RunResult
 
 
 model_map = {
@@ -31,15 +30,16 @@ model_map = {
 
 
 def transfer_train(
-    image_size: int = 128,
-    batch_size: int = 64,
+    image_size: int = 64,
+    batch_size: int = 32,
     epochs: int = 30,
     l2_regularization: float = 1e-5,
     architecture: str = "EfficientNetB0",
     learning_rate: float = 1e-3,
     lr_decay_rate: float = 0.99,
     lr_decay_steps: int = 5e2,
-) -> None:
+    project_name: str = "Seedlings Image Classification (Transfer Learning)",
+) -> RunResult:
 
     # Load data
     train_data = ImageDataset("train", TRAIN_DIR, target_size=(image_size, image_size))
@@ -78,7 +78,7 @@ def transfer_train(
     )
 
     # Make and init the wandb run.
-    wandb.init(project="Seedlings Image Classification (Transfer Learning)")
+    wandb.init(project=project_name, reinit=True)
     wandb.config.update(
         {
             "batch_size": batch_size,
@@ -115,12 +115,15 @@ def transfer_train(
         }
     )
 
-    # Save the submission
-    make_and_save_submission(
-        model,
-        image_size=image_size,
-        index2class=train_data.index2class,
-        run_name=wandb.run.name,
+    wandb.run.save()
+    run_name = wandb.run.name
+    wandb.join()  # end this run
+
+    return RunResult(
+        dev_acc,
+        train_acc,
+        run_name,
+        make_submission(model, image_size, train_data.index2class),
     )
 
 
