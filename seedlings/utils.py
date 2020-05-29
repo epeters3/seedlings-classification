@@ -1,4 +1,13 @@
 import os
+from typing import NamedTuple
+import pandas as pd
+
+
+class RunResult(NamedTuple):
+    dev_acc: float
+    train_acc: float
+    run_name: str
+    submission: pd.DataFrame
 
 
 def make_dir_if_needed(dir_path: str) -> None:

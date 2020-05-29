@@ -1,28 +1,18 @@
 """
 Training the model.
 """
-from typing import NamedTuple
-
-import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 from fire import Fire
 import wandb
 from wandb.keras import WandbCallback
-import pandas as pd
 
 from seedlings.config import TRAIN_DIR, DEV_DIR
 from seedlings.model import make_cnn
 from seedlings.dataset import ImageDataset
 from seedlings.test import make_submission
-
-
-class RunResult(NamedTuple):
-    dev_acc: float
-    train_acc: float
-    run_name: str
-    submission: pd.DataFrame
+from seedlings.utils import RunResult
 
 
 def train(
@@ -50,7 +40,8 @@ def train(
     epochs : int
         The number of epochs to train the model for.
     **model_params
-        All other keyword arguments are forwarded on to the `seedlings.model.make_cnn` method.
+        All other keyword arguments are forwarded on to the `seedlings.model.make_cnn`
+        method.
     """
 
     # Load data
