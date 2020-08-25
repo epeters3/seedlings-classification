@@ -6,10 +6,10 @@ import wandb
 from wandb.keras import WandbCallback
 import tensorflow as tf
 import tensorflow.keras.layers as L
-import efficientnet.tfkeras as efn
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
+import tensorflow_hub as hub
 
 from seedlings.test import make_submission
 from seedlings.config import TRAIN_DIR, DEV_DIR
@@ -17,16 +17,7 @@ from seedlings.dataset import ImageDataset
 from seedlings.utils import RunResult
 
 
-model_map = {
-    "EfficientNetB0": efn.EfficientNetB0,
-    "EfficientNetB1": efn.EfficientNetB1,
-    "EfficientNetB2": efn.EfficientNetB2,
-    "EfficientNetB3": efn.EfficientNetB3,
-    "EfficientNetB4": efn.EfficientNetB4,
-    "EfficientNetB5": efn.EfficientNetB5,
-    "EfficientNetB6": efn.EfficientNetB6,
-    "EfficientNetB7": efn.EfficientNetB7,
-}
+model_map = {"BiT-M R50x1": "https://tfhub.dev/google/bit/m-r50x1/1"}
 
 
 def transfer_train(
@@ -34,7 +25,7 @@ def transfer_train(
     batch_size: int = 32,
     epochs: int = 30,
     l2_regularization: float = 1e-5,
-    architecture: str = "EfficientNetB0",
+    architecture: str = "BiT-M R50x1",
     learning_rate: float = 1e-3,
     lr_decay_rate: float = 0.99,
     lr_decay_steps: int = 5e2,
@@ -43,26 +34,17 @@ def transfer_train(
 
     # Load data
     train_data = ImageDataset("train", TRAIN_DIR, target_size=(image_size, image_size))
-    print("index2class", train_data.index2class)
     # Add data augmentation to training set.
     train_data_gen = ImageDataGenerator(horizontal_flip=True, zoom_range=0.1).flow(
         train_data.X, train_data.y, batch_size=batch_size
     )
     dev_data = ImageDataset("dev", DEV_DIR, target_size=(image_size, image_size))
-    # No data augmentation to dev set.
-    dev_data_gen = ImageDataGenerator().flow(
-        dev_data.X, dev_data.y, batch_size=batch_size
-    )
 
     # Define and compile the model.
     model = tf.keras.Sequential(
         [
-            model_map[architecture](
-                input_shape=(image_size, image_size, 3),
-                weights="imagenet",
-                include_top=False,
-            ),
-            L.GlobalAveragePooling2D(),
+            hub.KerasLayer(model_map[architecture], trainable=False),
+            L.Flatten(),
             L.Dense(
                 train_data.n_classes,
                 activation="softmax",
@@ -72,7 +54,11 @@ def transfer_train(
     )
 
     model.compile(
-        optimizer=Adam(ExponentialDecay(learning_rate, lr_decay_steps, lr_decay_rate)),
+        optimizer=Adam(
+            ExponentialDecay(
+                learning_rate, lr_decay_steps, lr_decay_rate, staircase=True
+            )
+        ),
         loss="categorical_crossentropy",
         metrics=["accuracy"],
     )
@@ -97,7 +83,7 @@ def transfer_train(
         train_data_gen,
         steps_per_epoch=int(len(train_data.X) / batch_size),
         epochs=epochs,
-        validation_data=dev_data_gen,
+        validation_data=(dev_data.X, dev_data.y),
         callbacks=[WandbCallback(save_model=False)],
     )
 

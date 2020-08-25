@@ -52,9 +52,7 @@ scratch_hyperparam_samplers = {
 pretrained_hyperparam_samplers = {
     "epochs": make_sampler(5, 35, "int"),
     "l2_regularization": make_sampler(-10, -1, "log"),
-    "architecture": make_discrete_sampler(
-        {"EfficientNetB1", "EfficientNetB2", "EfficientNetB3"}
-    ),
+    "architecture": make_discrete_sampler({"BiT-M R50x1"}),
     "learning_rate": make_sampler(-6, -1, "log"),
     "lr_decay_rate": make_sampler(0.8, 1.0),
     "lr_decay_steps": make_sampler(1e1, 1e4),

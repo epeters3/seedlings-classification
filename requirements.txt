@@ -1,8 +1,9 @@
-fire
-tensorflow==1.15.2
-tqdm
-numpy
 wandb
+tensorflow-gpu>=2.2.0
+fire
+numpy
+tqdm
 h5py
-efficientnet
 pandas
+pillow
+tensorflow_hub
